@@ -73,4 +73,54 @@ CREATE ROLE R_CLIENTE;
     CREATE OR REPLACE VIEW VVEHICULO AS (SELECT * FROM vehiculo v join CLIENTE c on (v.CLIENTE_IDCLIENTE=c.IDCLIENTE) WHERE C.NOMBRE IN (SELECT USER FROM DUAL));
     
     
+/* 2. Crea una tabla denominada COMPRA_FUTURA que incluya el NIF, teléfono, nombre e email del proveedor,
+Referencia de pieza y cantidad. Necesitamos un procedimiento P_REVISA que cuando se ejecute compruebe si
+las piezas han caducado. De esta forma, insertará en COMPRA_FUTURA aquellas piezas caducadas junto a los
+datos necesarios para realizar en el futuro la compra.
+*/
+
+CREATE TABLE COMPRA_FUTURA(
+    NIF VARCHAR(9), 
+    TELEFONO NUMBER(38,0), -- Proveedor tiene telefono (38,0)
+    NOMBRE VARCHAR(50), 
+    EMAIL_PROVEEDOR VARCHAR(50), 
+    REF_PIEZA VARCHAR(50), 
+    CANTIDAD NUMBER);
     
+    
+CREATE OR REPLACE PROCEDURE P_REVISA IS
+    CURSOR C_PIEZA IS (SELECT PROVEEDOR_NIF, CODREF, NOMBRE, CANTIDAD, FECCADUCIDAD FROM PIEZA);
+    TLF number;
+    EMAIL VARCHAR2(50);
+BEGIN
+    FOR I IN C_PIEZA LOOP
+        IF(I.FECCADUCIDAD < SYSDATE) THEN
+            SELECT TELEFONO INTO TLF FROM PROVEEDOR P WHERE I.PROVEEDOR_NIF = P.NIF;
+            SELECT EMAIL INTO EMAIL FROM PROVEEDOR P WHERE I.PROVEEDOR_NIF = P.NIF;
+            INSERT INTO COMPRA_FUTURA VALUES (I.PROVEEDOR_NIF, TLF, I.NOMBRE, EMAIL, I.CODREF, I.CANTIDAD);
+        END IF;
+    END LOOP;
+    
+END P_REVISA;
+/
+
+/*
+Para comprobar:
+1º Introducir datos (ficticios)
+2º exec p_revisa;
+3º select * from compra_futura;
+*/
+
+/*3. Necesitamos una vista denominada V_IVA_CUATRIMESTRE con los atributos AÑO, TRIMESTRE, IVA_TOTAL
+siendo trimestre un número de 1 a 4. El IVA_TOTAL es el IVA devengado (suma del IVA de las facturas de ese
+trimestre). Dar permiso de selección a los Administrativos. */
+
+-- "" VER SI HAY ALGUNA FORMA MÁS INTUITIVA O SENCILLA DE HACERLO ""
+
+CREATE OR REPLACE VIEW V_IVA_CUATRIMESTRE (AÑO, TRIMESTRE, IVA_TOTAL) AS
+(SELECT TO_CHAR(FECEMISION,'YYYY'), TRUNC((TO_NUMBER(TO_CHAR(FECEMISION, 'MM'))/4)+1), SUM(IVA) AS IVA_TOTAL FROM FACTURA 
+GROUP BY TO_CHAR(FECEMISION,'YYYY'), TRUNC((TO_NUMBER(TO_CHAR(FECEMISION, 'MM'))/4)+1));
+
+SELECT * FROM V_IVA_CUATRIMESTRE;
+
+GRANT SELECT ON V_IVA_CUATRIMESTRE TO R_ADMINISTRATIVO;
