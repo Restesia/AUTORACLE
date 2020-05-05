@@ -1,9 +1,8 @@
-
 /*1. Modificar el modelo (si es necesario) para almacenar el usuario de Oracle que cada empleado o cliente pueda
-utilizar para conectarse a la base de datos. Además habrá de crear roles dependiendo del tipo de usuario:
-Administrativo, con acceso a toda la BD; Empleado, con acceso sólo a aquellos objetos que precise para su
-trabajo (y nunca podrá acceder a los datos de otros empleados); y Cliente, con acceso sólo a los datos propios,
-de su vehículo y de sus servicios. Los roles se llamarán R_ADMINISTRATIVO, R_MECANICO, R_CLIENTE.
+utilizar para conectarse a la base de datos. Ademï¿½s habrï¿½ de crear roles dependiendo del tipo de usuario:
+Administrativo, con acceso a toda la BD; Empleado, con acceso sï¿½lo a aquellos objetos que precise para su
+trabajo (y nunca podrï¿½ acceder a los datos de otros empleados); y Cliente, con acceso sï¿½lo a los datos propios,
+de su vehï¿½culo y de sus servicios. Los roles se llamarï¿½n R_ADMINISTRATIVO, R_MECANICO, R_CLIENTE.
 */
 
 -- CREAMOS LOS ROLES:
@@ -18,7 +17,7 @@ CREATE ROLE R_CLIENTE;
     GRANT CONNECT TO R_ADMINISTRATIVO, R_MECANICO, R_CLIENTE;
     
     -- PERMISOS A R_ADMINISTRADOR (TODA LA BD).
-    /* NO USAR ANY, NO TENEMOS PRIVILEGIOS PARA ELLO EN AUTORACLE, ADEMÁS ES PELIGROSO.
+    /* NO USAR ANY, NO TENEMOS PRIVILEGIOS PARA ELLO EN AUTORACLE, ADEMï¿½S ES PELIGROSO.
        RECORDAR QUE CADA VEZ QUE SE INTRODUZCA ALGO NUEVO A LA BD HAY QUE DARLE PERMISOS
        AL R_ADMINISTRADOR
     */
@@ -51,13 +50,13 @@ CREATE ROLE R_CLIENTE;
     
 
     -- PERMISOS NECESARIOS A R_MECANICO (NO ACCEDER A LOS DATOS DE OTRO MECANICO)
-    /* VER LO DE NO OTRO MECANICO Y SI NECESITA MÁS PRIVILEGIOS*/
+    /* VER LO DE NO OTRO MECANICO Y SI NECESITA Mï¿½S PRIVILEGIOS*/
     
     GRANT SELECT ON FACTURA TO R_MECANICO;
     GRANT SELECT ON SERVICIO TO R_MECANICO;
     GRANT SELECT ON VACACIONES TO R_MECANICO;
     
-    -- DUDA, CLASES HIJAS DE SERVICIO (¿DAR PERMISO EXPLÍCITO?)
+    -- DUDA, CLASES HIJAS DE SERVICIO (ï¿½DAR PERMISO EXPLï¿½CITO?)
     GRANT SELECT ON MANTENIMIENTO TO R_MECANICO;
     GRANT SELECT ON REPARACION TO R_MECANICO;
     
@@ -71,56 +70,3 @@ CREATE ROLE R_CLIENTE;
     
     -- VISTA A VEHICULO PROPIO
     CREATE OR REPLACE VIEW VVEHICULO AS (SELECT * FROM vehiculo v join CLIENTE c on (v.CLIENTE_IDCLIENTE=c.IDCLIENTE) WHERE C.NOMBRE IN (SELECT USER FROM DUAL));
-    
-    
-/* 2. Crea una tabla denominada COMPRA_FUTURA que incluya el NIF, teléfono, nombre e email del proveedor,
-Referencia de pieza y cantidad. Necesitamos un procedimiento P_REVISA que cuando se ejecute compruebe si
-las piezas han caducado. De esta forma, insertará en COMPRA_FUTURA aquellas piezas caducadas junto a los
-datos necesarios para realizar en el futuro la compra.
-*/
-
-CREATE TABLE COMPRA_FUTURA(
-    NIF VARCHAR(9), 
-    TELEFONO NUMBER(38,0), -- Proveedor tiene telefono (38,0)
-    NOMBRE VARCHAR(50), 
-    EMAIL_PROVEEDOR VARCHAR(50), 
-    REF_PIEZA VARCHAR(50), 
-    CANTIDAD NUMBER);
-    
-    
-CREATE OR REPLACE PROCEDURE P_REVISA IS
-    CURSOR C_PIEZA IS (SELECT PROVEEDOR_NIF, CODREF, NOMBRE, CANTIDAD, FECCADUCIDAD FROM PIEZA);
-    TLF number;
-    EMAIL VARCHAR2(50);
-BEGIN
-    FOR I IN C_PIEZA LOOP
-        IF(I.FECCADUCIDAD < SYSDATE) THEN
-            SELECT TELEFONO INTO TLF FROM PROVEEDOR P WHERE I.PROVEEDOR_NIF = P.NIF;
-            SELECT EMAIL INTO EMAIL FROM PROVEEDOR P WHERE I.PROVEEDOR_NIF = P.NIF;
-            INSERT INTO COMPRA_FUTURA VALUES (I.PROVEEDOR_NIF, TLF, I.NOMBRE, EMAIL, I.CODREF, I.CANTIDAD);
-        END IF;
-    END LOOP;
-    
-END P_REVISA;
-/
-
-/*
-Para comprobar:
-1º Introducir datos (ficticios)
-2º exec p_revisa;
-3º select * from compra_futura;
-*/
-
-/*3. Necesitamos una vista denominada V_IVA_CUATRIMESTRE con los atributos AÑO, TRIMESTRE, IVA_TOTAL
-siendo trimestre un número de 1 a 4. El IVA_TOTAL es el IVA devengado (suma del IVA de las facturas de ese
-trimestre). Dar permiso de selección a los Administrativos. */
-
--- "" VER SI HAY ALGUNA FORMA MÁS INTUITIVA O SENCILLA DE HACERLO ""
-
-CREATE OR REPLACE VIEW V_IVA_CUATRIMESTRE (AÑO, TRIMESTRE, IVA_TOTAL) AS
-(SELECT TO_CHAR(FECEMISION,'YYYY'), TRUNC((TO_NUMBER(TO_CHAR(FECEMISION, 'MM'))/4)+1), SUM(IVA) AS IVA_TOTAL FROM FACTURA 
-GROUP BY TO_CHAR(FECEMISION,'YYYY'), TRUNC((TO_NUMBER(TO_CHAR(FECEMISION, 'MM'))/4)+1));
-
-SELECT * FROM V_IVA_CUATRIMESTRE;
-
-GRANT SELECT ON V_IVA_CUATRIMESTRE TO R_ADMINISTRATIVO;
