@@ -3,7 +3,7 @@
     el porcentaje de iva y calcula la cantidad en euros para estos dos campos.
     */
     
---Desde AUTORACLE
+--Desde AUTORACLE, revisar hacer un loop (con for) y cambiar el insert
 ALTER TABLE factura  ADD (
     iva_calculado NUMBER,
     total NUMBER
