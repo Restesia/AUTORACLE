@@ -2,8 +2,7 @@
     Implementar un procedimiento P_CALCULA_FACT que recorre los datos necesarios de las piezas utilizadas y
     el porcentaje de iva y calcula la cantidad en euros para estos dos campos.
     */
-    
---Desde AUTORACLE, revisar hacer un loop (con for) y cambiar el insert
+
 ALTER TABLE factura  ADD (
     iva_calculado NUMBER,
     total NUMBER
@@ -18,8 +17,10 @@ CURSOR c_res IS SELECT SUM(preciounidadventa * iva/100) iva_calculado, SUM(preci
 BEGIN
     OPEN c_res;
         FETCH c_res INTO res_iva_calculado, res_total;
-        INSERT INTO factura (iva_calculado, total)
-        VALUES (res_iva_calculado, res_total);
+        UPDATE factura
+            SET iva_calculado = res_iva_calculado,
+                total         = res_total
+        WHERE idfactura = id_factura;
     CLOSE c_res;
 END P_CALCULA_FACT;
 /
