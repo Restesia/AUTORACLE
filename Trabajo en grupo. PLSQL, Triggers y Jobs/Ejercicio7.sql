@@ -1,30 +1,34 @@
 create or replace package AUTORACLE_GESTION_EMPLEADOS as
-    procedure CREA_EMPLEADO(NOMBRE IN VARCHAR(64), APELLIDO1 IN VARCHAR(64), APELLIDO2 IN VARCHAR(64), FECHA_ENTRADA IN DATE, 
-                            DESPEDIDO IN NUMBER(2), SUELDOBASE IN NUMBER(8,2), HORAS IN NUMBER(34,0), PUESTO IN VARCHAR(64), 
-                            RETENCIONES IN NUMBER(38,0));
+    
 
-    procedure BORRA_EMPLEADO(ID_EMPLEADO IN VARCHAR(16)) ;
+    procedure CREA_EMPLEADO(NOMBRE empleado.nombre%type, APELLIDO1 empleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
+                            DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
+                            RETENCIONES empleado.retenciones%type);
 
-    procedure MODIFICA_EMPLEADO(ID_EMPLEADO IN VARCHAR(16), NOMBRE IN VARCHAR(64), APELLIDO1 IN VARCHAR(64), APELLIDO2 IN VARCHAR(64), FECHA_ENTRADA IN DATE,
-                            DESPEDIDO IN NUMBER(2), SUELDOBASE IN NUMBER(8,2), HORAS IN NUMBER(34,0), PUESTO IN VARCHAR(64), 
-                            RETENCIONES IN NUMBER(38,0));
+    procedure BORRA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
 
-    procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO IN VARCHAR(16)) ;
+    procedure MODIFICA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type, NOMBRE empleado.nombre%type, APELLIDO1 empleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
+                            DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
+                            RETENCIONES empleado.retenciones%type);
 
-    procedure DESBLOQUEAR_EMPLEADO(ID_EMPLEADO IN VARCHAR(16)) ;
+    procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
+
+    procedure DESBLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
 
     procedure BLOQUEAR_TODOS;
 
     procedure DESBLOQUEAR_TODOS;
 
-End AUTORACLE_GESTION_EMPLEADOS ;
+END AUTORACLE_GESTION_EMPLEADOS;
+/
 
-create or replace package body AUTORACLE_GESTION_EMPLEADOS as
 
+CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
-    procedure CREA_EMPLEADO(NOMBRE IN VARCHAR(64), APELLIDO1 IN VARCHAR(64), APELLIDO2 IN VARCHAR(64), FECHA_ENTRADA IN DATE, 
-                                DESPEDIDO IN NUMBER(2), SUELDOBASE IN NUMBER(8,2), HORAS IN NUMBER(34,0), PUESTO IN VARCHAR(64), 
-                                RETENCIONES IN NUMBER(38,0)) as
+    procedure CREA_EMPLEADO(NOMBRE empleado.nombre%type, APELLIDO1 empleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
+                            DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
+                            RETENCIONES empleado.retenciones%type) IS
+
         Condicion_salida NUMBER(2);
         Total_Empleados NUMBER(6);
         ID_EMPLEADO Varchar(16);
@@ -45,33 +49,33 @@ create or replace package body AUTORACLE_GESTION_EMPLEADOS as
         insert into empleado (IDEMPLEADO, NOMBRE, APELLIDO1, APELLIDO2, FECENTRADA, DESPEDIDO, SUELDOBASE, HORAS, PUESTO, RETENCIONES)
         values ( TO_CHAR(Total_Empleados) , NOMBRE, APELLIDO1, APELLIDO2, FECHA_ENTRADA, DESPEDIDO, SUELDOBASE, HORAS, PUESTO, RETENCIONES);
 
-        Create user NOMBRE||TO_CHAR(Total_Empleados) identified by autouser
-        temporary tablespace TS_AUTORACLE
-        default tablespace TS_AUTORACLE;
+        CREATE user NOMBRE||TO_CHAR(Total_Empleados) identified by autouse;
 
-        COMMIT;
-
-    end CREA_EMPLEADO;
+        
 
 
-    procedure BORRA_EMPLEADO(ID_EMPLEADO IN VARCHAR(16)) as
+    END;
+
+
+    PROCEDURE BORRA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) as
+    
 
         Nom Varchar(64);
         BEGIN
-
+        
         Select NOMBRE into Nom from empleado where IDEMPLEADO = ID_EMPLEADO;
         delete from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
         ALTER USER Nom||ID_EMPLEADO ACCOUNT LOCK;
-        COMMIT;
 
-    end BORRAR_EMPLEADO;
+    END;
 
 
-    procedure MODIFICA_EMPLEADO(ID_EMPLEADO IN VARCHAR(16), NOMBRE IN VARCHAR(64), APELLIDO1 IN VARCHAR(64), APELLIDO2 IN VARCHAR(64), FECHA_ENTRADA IN DATE,
-                            DESPEDIDO IN NUMBER, SUELDOBASE IN NUMBER(8,2), HORAS IN NUMBER(34,0), PUESTO IN VARCHAR(64), 
-                            RETENCIONES IN NUMBER(38,0)) as
+    procedure MODIFICA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type, NOMBRE empleado.nombre%type, APELLIDO1 Iempleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
+                            DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
+                            RETENCIONES empleado.retenciones%type) is
+    
 
         USER VARCHAR(64);
     
@@ -95,12 +99,14 @@ create or replace package body AUTORACLE_GESTION_EMPLEADOS as
         default tablespace TS_AUTORACLE;
         END IF;
 
-        COMMIT;
 
-    end MODIFICAR_EMPLEADO;
+
+    END;
 
     
-    procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO IN VARCHAR(16)) as
+    procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) is
+    
+    BEGIN
 
             Nom Varchar(64);
         BEGIN
@@ -110,12 +116,13 @@ create or replace package body AUTORACLE_GESTION_EMPLEADOS as
         -- Bloquear el usuario
         ALTER USER Nom||ID_EMPLEADO ACCOUNT LOCK;
 
-        COMMIT;
-
-    end BLOQUEAR_EMPLEADO ;
 
 
-    procedure DESBLOQUEAR_EMPLEADO(ID_EMPLEADO IN VARCHAR(16)) as
+    END;
+
+
+    procedure DESBLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) is
+    
 
                 Nom Varchar(64);
         BEGIN
@@ -125,34 +132,37 @@ create or replace package body AUTORACLE_GESTION_EMPLEADOS as
         -- Bloquear el usuario
         ALTER USER Nom||ID_EMPLEADO ACCOUNT UNLOCK;
 
-        COMMIT;
-
-    end DESBLOQUEAR_EMPLEADO;
 
 
-    procedure BLOQUEAR_TODOS as
+    END;
+
+
+    procedure BLOQUEAR_TODOS is
+    
+    BEGIN
 
             Cursor c_cursor is select * from empleados;
         BEGIN
             FOR datos in c_cursor LOOP
                 ALTER USER datos.NOMBRE||datos.IDEMPLEADO ACCOUNT LOCK;
             END LOOP;
-        COMMIT;
-
-    end BLOQUEAR_TODOS;
 
 
-    procedure DESBLOQUEAR_TODOS as
+    END;
+
+
+    procedure DESBLOQUEAR_TODOS is
+    
 
             Cursor c_cursor is select * from empleados;
         BEGIN
             FOR datos in c_cursor LOOP
                 ALTER USER datos.NOMBRE||datos.IDEMPLEADO ACCOUNT UNLOCK;
             END LOOP;
-        COMMIT;
-
-    end DESBLOQUEAR_TODOS;
 
 
-end AUTORACLE_GESTION_EMPLEADOS;
+    END;
+
+
+END AUTORACLE_GESTION_EMPLEADOS;
 /
