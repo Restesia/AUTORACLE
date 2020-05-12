@@ -1,3 +1,8 @@
+Create SEQUENCE emp START WITH 3000
+INCREMENT BY Numero;
+
+
+
 create or replace package AUTORACLE_GESTION_EMPLEADOS as
     
 
@@ -29,30 +34,19 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
                             DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
                             RETENCIONES empleado.retenciones%type) IS
 
-        Condicion_salida NUMBER(2);
-        Total_Empleados NUMBER(6);
         ID_EMPLEADO Varchar(16);
         BEGIN
 
-        Select Count(IDEMPLEADO) into Total_empleados from empleado;
-        Condicion_salida := 1;
 
         -- 1º Comprobar si count(IDMPLEADO) ya está cogido como codigo primario, incrementar uno repetir y almacenar
 
-        WHILE ID_EMPLEADO != NULL LOOP
-
-            Total_empleados := Total_Empleados +1;
-            Select IDEMPLEADO into ID_EMPLEADO from empleado where IDEMPLEADO = TO_CHAR(Total_Empleados);
-
-        END LOOP;
 
         insert into empleado (IDEMPLEADO, NOMBRE, APELLIDO1, APELLIDO2, FECENTRADA, DESPEDIDO, SUELDOBASE, HORAS, PUESTO, RETENCIONES)
-        values ( TO_CHAR(Total_Empleados) , NOMBRE, APELLIDO1, APELLIDO2, FECHA_ENTRADA, DESPEDIDO, SUELDOBASE, HORAS, PUESTO, RETENCIONES);
+        values ( TO_CHAR(emp.NEXTVAL) , NOMBRE, APELLIDO1, APELLIDO2, FECHA_ENTRADA, DESPEDIDO, SUELDOBASE, HORAS, PUESTO, RETENCIONES);
 
-        CREATE user NOMBRE||TO_CHAR(Total_Empleados) identified by autouse;
+        Select IDEMPLEADO into ID_EMPLEADO from empleado where NOMBRE = NOMBRE and apellido1 = apellido1 and FECENTRADA = FECHA_ENTRADA;
 
-        
-
+        Execute immediate 'CREATE user'||NOMBRE||TO_CHAR(Total_Empleados)||'identified by autouse';
 
     END;
 
@@ -67,7 +61,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         delete from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
-        ALTER USER Nom||ID_EMPLEADO ACCOUNT LOCK;
+        execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||'ACCOUNT LOCK';
 
     END;
 
@@ -75,10 +69,10 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
     procedure MODIFICA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type, NOMBRE empleado.nombre%type, APELLIDO1 Iempleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
                             DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
                             RETENCIONES empleado.retenciones%type) is
-    
+        USR VARCHAR(64);
 
-        USER VARCHAR(64);
-    
+    BEGIN
+
         update empleado set NOMBRE = NOMBRE,
         APELLIDO1 = APELLIDO1,
         APELLIDO2 = APELLIDO2,
@@ -91,12 +85,10 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         where IDEMPLEADO = ID_EMPLEADO ;
 
         -- Comprobar si el usuario es NULL y crear de ser necesario
-        Select USERNAME into USER from all_users where USERNAME = NOMBRE||ID_EMPLEADO;
+        Select USERNAME into USR from all_users where USERNAME = NOMBRE||ID_EMPLEADO;
 
-        IF USER = null 
-        Create user NOMBRE||ID_EMPLEADO identified by autouser
-        temporary tablespace TS_AUTORACLE
-        default tablespace TS_AUTORACLE;
+        IF USR is null 
+        Execute immediate 'Create user'||NOMBRE||ID_EMPLEADO||'identified by autouser';
         END IF;
 
 
@@ -114,7 +106,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         Select NOMBRE into Nom from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
-        ALTER USER Nom||ID_EMPLEADO ACCOUNT LOCK;
+        Execute immediate 'ALTER USER'||Nom||ID_EMPLEADO||'ACCOUNT LOCK';
 
 
 
@@ -130,8 +122,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         Select NOMBRE into Nom from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
-        ALTER USER Nom||ID_EMPLEADO ACCOUNT UNLOCK;
-
+        Execute immediate 'ALTER USER'||Nom||ID_EMPLEADO||'ACCOUNT UNLOCK';
 
 
     END;
@@ -144,7 +135,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
             Cursor c_cursor is select * from empleados;
         BEGIN
             FOR datos in c_cursor LOOP
-                ALTER USER datos.NOMBRE||datos.IDEMPLEADO ACCOUNT LOCK;
+                        Execute immediate 'ALTER USER'||Nom||ID_EMPLEADO||'ACCOUNT LOCK';
             END LOOP;
 
 
@@ -157,7 +148,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
             Cursor c_cursor is select * from empleados;
         BEGIN
             FOR datos in c_cursor LOOP
-                ALTER USER datos.NOMBRE||datos.IDEMPLEADO ACCOUNT UNLOCK;
+                        Execute immediate 'ALTER USER'||Nom||ID_EMPLEADO||'ACCOUNT UNLOCK';
             END LOOP;
 
 
