@@ -1,5 +1,5 @@
 Create SEQUENCE emp START WITH 3000
-INCREMENT BY Numero;
+INCREMENT BY 1;
 
 
 
@@ -46,7 +46,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
         Select IDEMPLEADO into ID_EMPLEADO from empleado where NOMBRE = NOMBRE and apellido1 = apellido1 and FECENTRADA = FECHA_ENTRADA;
 
-        Execute immediate 'CREATE user'||NOMBRE||TO_CHAR(Total_Empleados)||'identified by autouse';
+        Execute immediate 'CREATE user'||NOMBRE||TO_CHAR(ID_EMPLEADO)||'identified by autouse';
 
     END;
 
