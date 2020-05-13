@@ -46,7 +46,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
         Select IDEMPLEADO into ID_EMPLEADO from empleado where NOMBRE = NOMBRE and apellido1 = apellido1 and FECENTRADA = FECHA_ENTRADA;
 
-        Execute immediate 'CREATE user'||NOMBRE||TO_CHAR(ID_EMPLEADO)||'identified by autouse';
+        Execute immediate 'CREATE user '||NOMBRE||TO_CHAR(ID_EMPLEADO)||' identified by autouse';
 
     END;
 
@@ -61,7 +61,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         delete from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
-        execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||'ACCOUNT LOCK';
+        execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||' ACCOUNT LOCK';
 
     END;
 
@@ -88,7 +88,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         Select USERNAME into USR from all_users where USERNAME = NOMBRE||ID_EMPLEADO;
 
         IF USR is null 
-        Execute immediate 'Create user'||NOMBRE||ID_EMPLEADO||'identified by autouser';
+        Execute immediate 'Create user '||NOMBRE||ID_EMPLEADO||' identified by autouser';
         END IF;
 
 
@@ -106,7 +106,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         Select NOMBRE into Nom from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
-        Execute immediate 'ALTER USER'||Nom||ID_EMPLEADO||'ACCOUNT LOCK';
+        Execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||' ACCOUNT LOCK';
 
 
 
@@ -122,7 +122,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         Select NOMBRE into Nom from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
-        Execute immediate 'ALTER USER'||Nom||ID_EMPLEADO||'ACCOUNT UNLOCK';
+        Execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||' ACCOUNT UNLOCK';
 
 
     END;
@@ -135,7 +135,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
             Cursor c_cursor is select * from empleados;
         BEGIN
             FOR datos in c_cursor LOOP
-                        Execute immediate 'ALTER USER'||Nom||ID_EMPLEADO||'ACCOUNT LOCK';
+                        Execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||' ACCOUNT LOCK';
             END LOOP;
 
 
@@ -148,7 +148,7 @@ CREATE OR REPLACE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
             Cursor c_cursor is select * from empleados;
         BEGIN
             FOR datos in c_cursor LOOP
-                        Execute immediate 'ALTER USER'||Nom||ID_EMPLEADO||'ACCOUNT UNLOCK';
+                        Execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||' ACCOUNT UNLOCK';
             END LOOP;
 
 
