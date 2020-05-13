@@ -11,6 +11,7 @@ ALTER TABLE factura  ADD (
 CREATE OR REPLACE PROCEDURE P_CALCULA_FACT(id_factura NUMBER) AS
 res_iva_calculado NUMBER;
 res_total NUMBER;
+-- Hacer un select en vez de todo el cursor
 CURSOR c_res IS SELECT SUM(preciounidadventa * iva/100) iva_calculado, SUM(preciounidadventa + preciounidadventa * iva/100) total FROM factura 
     JOIN contiene ON (factura.idfactura = contiene.factura_idfactura) 
     JOIN pieza ON (contiene.pieza_codref = pieza.codref) WHERE factura.idfactura = id_factura;
