@@ -1,4 +1,4 @@
-/*3. Necesitamos una vista denominada V_IVA_CUATRIMESTRE con los atributos A�O, TRIMESTRE, IVA_TOTAL
+/*4. Necesitamos una vista denominada V_IVA_CUATRIMESTRE con los atributos A�O, TRIMESTRE, IVA_TOTAL
 siendo trimestre un n�mero de 1 a 4. El IVA_TOTAL es el IVA devengado (suma del IVA de las facturas de ese
 trimestre). Dar permiso de selecci�n a los Administrativos. */
 
