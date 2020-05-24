@@ -48,10 +48,10 @@ FUNCTION F_CALCULAR_TIEMPOS RETURN T_TIEMPOS AS
     resultado T_TIEMPOS;
 BEGIN
         -- Realizamos la consulta
-        SELECT (SUM((s.FECREALIZACION - s.FECRECEPCION)) / COUNT(*)), SUM(HORAS)/COUNT(*)
+        SELECT (SUM((s.FECREALIZACION - s.FECRECEPCION)) / COUNT(*)), SUM(HORAS)/COUNT(horas)
         INTO resultado
         FROM servicio s
-        INNER JOIN reparacion r ON s.IDSERVICIO = r.IDSERVICIO
+        FULL JOIN reparacion r ON s.IDSERVICIO = r.IDSERVICIO
         -- Evitamos las fechas que estan vacias
         WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL;
         -- Mostramos los valores
@@ -60,7 +60,6 @@ BEGIN
         RETURN resultado;
 END F_CALCULAR_TIEMPOS;
 
--- TODO: ULTIMO APARTADO
 ---- 3. El procedimiento P_Recompensa encuentra el servicio proporcionado
 ---- más rápido y más lento(en días) y a los empleados involucrados los 
 ---- recompensa con un +/-5% en su sueldo base respectivamente...
@@ -69,9 +68,7 @@ PROCEDURE P_RECOMPENSA AS
     -- Valores para guardar los id de los empleados
     idIncrementa NUMBER;
     idDecrementa NUMBER;
-        
-    -- Cursor sobre el que iterar con los servicios, empleados y fechas
- 
+         
 BEGIN
         -- Buscamos el mas rapido
         SELECT t.EMPLEADO_IDEMPLEADO as id_empleado
@@ -79,7 +76,8 @@ BEGIN
         FROM AUTORACLE.SERVICIO s
         JOIN AUTORACLE.TRABAJA t ON s.IDSERVICIO = t.SERVICIO_IDSERVICIO
         WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL
-        ORDER By ((s.FECREALIZACION - s.FECRECEPCION)) ASC
+        ORDER By ((s.FECREALIZACION - s.FECRECEPCION)) ASC,
+         s.FECREALIZACION DESC, s.FECRECEPCION DESC, s.FECAPERTURA DESC
         fetch first 1 rows only;
         -- Buscamos el mas lento
         SELECT t.EMPLEADO_IDEMPLEADO as id_empleado
@@ -87,7 +85,8 @@ BEGIN
         FROM AUTORACLE.SERVICIO s
         JOIN AUTORACLE.TRABAJA t ON s.IDSERVICIO = t.SERVICIO_IDSERVICIO
         WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL
-        ORDER By ((s.FECREALIZACION - s.FECRECEPCION)) DESC
+        ORDER By ((s.FECREALIZACION - s.FECRECEPCION)) DESC,
+        s.FECREALIZACION DESC, s.FECRECEPCION DESC, s.FECAPERTURA DESC
         fetch first 1 rows only;
         
         
@@ -109,3 +108,90 @@ BEGIN
 END P_RECOMPENSA;
 
 END;
+/
+
+-- PRUEBAS 
+
+--- 1.
+DECLARE
+  COD VARCHAR2(200);
+  ANYO VARCHAR2(200);
+  v_Return AUTORACLE.AUTORACLE_ANALISIS.T_MEDIA_MIN_MAX;
+BEGIN
+  COD := '1234';
+  ANYO := '2020';
+
+  v_Return := AUTORACLE_ANALISIS.F_CALCULAR_PIEZAS(
+    COD => COD,
+    ANYO => ANYO
+  );
+  
+  -- Insertamos un nuevo pedido 
+  
+  insert into compra values (15,TO_DATE('08/05/2020', 'DD/MM/YYYY'),'c56984',TO_DATE('10/05/2020', 'DD/MM/YYYY'));
+  insert into lote values (25,'1234',15,21);
+  
+  -- Vemos como cambia el valor
+
+  v_Return := AUTORACLE_ANALISIS.F_CALCULAR_PIEZAS(
+    COD => COD,
+    ANYO => ANYO
+  );
+  
+  
+END;
+/
+
+
+--- 2.
+DECLARE
+  v_Return AUTORACLE.AUTORACLE_ANALISIS.T_TIEMPOS;
+BEGIN
+
+  v_Return := AUTORACLE_ANALISIS.F_CALCULAR_TIEMPOS();
+  
+  -- Insertamos un nuevo servicio de reparacion
+  
+  insert into servicio values(2,'Reparar',TO_DATE('08/05/2020', 'DD/MM/YYYY'),TO_DATE('08/05/2020', 'DD/MM/YYYY'),TO_DATE('10/05/2020', 'DD/MM/YYYY'),'Correcta','234321',NULL);
+  insert into reparacion values(2,'Junta de la trocola',30);
+  
+  -- Vemos como afecta a los tiempos
+  
+  v_Return := AUTORACLE_ANALISIS.F_CALCULAR_TIEMPOS();
+    
+END;
+/
+
+--- 3.
+
+SELECT IDEMPLEADO,SUELDOBASE FROM EMPLEADO;
+
+/
+BEGIN
+  
+  
+  AUTORACLE_ANALISIS.P_RECOMPENSA();
+  
+  -- Insertamos una nueva reaparación para penalizar
+
+  
+  insert into servicio values (10,'Reparar',TO_DATE('08/05/2020', 'DD/MM/YYYY'),TO_DATE('08/05/2020', 'DD/MM/YYYY'),TO_DATE('26/08/2020', 'DD/MM/YYYY'),'Correcta',234321,NULL);
+  insert into trabaja values (15,10);
+  
+  -- Vemos como cambia el empleado penalizado
+  
+  AUTORACLE_ANALISIS.P_RECOMPENSA();
+  
+  -- Insertamos una nueva reparación para premiar
+  
+  insert into servicio values (50,'Reparar',TO_DATE('08/05/2020', 'DD/MM/YYYY'),TO_DATE('08/05/2020', 'DD/MM/YYYY'),TO_DATE('08/05/2020', 'DD/MM/YYYY'),'Correcta',234321,NULL);
+  insert into trabaja values (2,50);
+  
+  -- Vemos como cambia el empleado premiado
+
+  AUTORACLE_ANALISIS.P_RECOMPENSA();
+  
+END;
+/
+
+SELECT IDEMPLEADO,SUELDOBASE FROM EMPLEADO;
