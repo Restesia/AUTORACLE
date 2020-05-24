@@ -69,36 +69,30 @@ PROCEDURE P_RECOMPENSA AS
     -- Valores para guardar los id de los empleados
     idIncrementa NUMBER;
     idDecrementa NUMBER;
-    
-    -- Inicializamos las variables para comparar
-    mas_rapido NUMBER := POWER(2,418)-1;
-    mas_lento NUMBER := 0;
-    
+        
     -- Cursor sobre el que iterar con los servicios, empleados y fechas
-     CURSOR cur IS
-     SELECT s.IDSERVICIO as id_servicio,
-       t.EMPLEADO_IDEMPLEADO as id_empleado,
-       ((s.FECREALIZACION - s.FECRECEPCION)) as dias
-    FROM AUTORACLE.SERVICIO s
-        JOIN AUTORACLE.TRABAJA t ON s.IDSERVICIO = t.SERVICIO_IDSERVICIO
-        WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL;
  
 BEGIN
-        for r in cur loop
         -- Buscamos el mas rapido
-            IF r.dias < mas_rapido THEN
-                idIncrementa := r.id_empleado;
-                mas_rapido := r.dias;
-            END IF;
+        SELECT t.EMPLEADO_IDEMPLEADO as id_empleado
+        into idIncrementa
+        FROM AUTORACLE.SERVICIO s
+        JOIN AUTORACLE.TRABAJA t ON s.IDSERVICIO = t.SERVICIO_IDSERVICIO
+        WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL
+        ORDER By ((s.FECREALIZACION - s.FECRECEPCION)) ASC
+        fetch first 1 rows only;
         -- Buscamos el mas lento
-            IF r.dias > mas_lento THEN
-                idDecrementa := r.id_empleado;
-                mas_lento := r.dias;
-            END IF;
-        END LOOP;
+        SELECT t.EMPLEADO_IDEMPLEADO as id_empleado
+        into idDecrementa
+        FROM AUTORACLE.SERVICIO s
+        JOIN AUTORACLE.TRABAJA t ON s.IDSERVICIO = t.SERVICIO_IDSERVICIO
+        WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL
+        ORDER By ((s.FECREALIZACION - s.FECRECEPCION)) DESC
+        fetch first 1 rows only;
         
-        DBMS_OUTPUT.PUT_LINE('Incrementar ' || idIncrementa || ' por servicio de  ' || mas_rapido);
-        DBMS_OUTPUT.PUT_LINE('Decrementar ' || idDecrementa || ' por servicio de  ' || mas_lento);
+        
+        DBMS_OUTPUT.PUT_LINE('Incrementar ' || idIncrementa);
+        DBMS_OUTPUT.PUT_LINE('Decrementar ' || idDecrementa);
 
         -- Aplicamos la penalizacion sobre el lento
         UPDATE AUTORACLE.EMPLEADO
