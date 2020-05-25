@@ -70,6 +70,9 @@ CREATE ROLE R_CLIENTE;
     
     -- VISTA A SERVICIOS PROPIOS 
     
+   CREATE OR REPLACE VIEW VSERVICIO AS
+   (select * from servicio s join vehiculo v on (s.vehiculo_numbastidor=v.numbastidor) join cliente c on (v.cliente_idcliente=c.idcliente) where c.username = user);
+    
     -- VISTA A VEHICULO PROPIO
      ALTER TABLE EMPLEADO ADD USERNAME VARCHAR(32);
      
@@ -78,9 +81,11 @@ CREATE ROLE R_CLIENTE;
     -- Dar permisos de la vista
     
     GRANT SELECT ON VDATOS TO R_CLIENTE;
+    GRANT SELECT ON VSERVICIO TO R_CLIENTE;
     GRANT SELECT ON VVEHICULO TO R_CLIENTE;
     
     GRANT SELECT ON VDATOS TO R_ADMINISTRATIVO; -- Admin puede verlo todo
+    GRANT SELECT ON VSERVICIO TO R_ADMINISTRATIVO; --Admin puede verlo todo
     GRANT SELECT ON VVEHICULO TO R_ADMINISTRATIVO; -- Admin puede verlo todo
     
     
