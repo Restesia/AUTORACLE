@@ -77,7 +77,15 @@ CREATE ROLE R_CLIENTE;
     
     -- Dar permisos de la vista
     
-    GRANT SELECT ON VDATOS TO R_CLIENTE
+    GRANT SELECT ON VDATOS TO R_CLIENTE;
     GRANT SELECT ON VVEHICULO TO R_CLIENTE;
     
+    GRANT SELECT ON VDATOS TO R_ADMINISTRATIVO; -- Admin puede verlo todo
+    GRANT SELECT ON VVEHICULO TO R_ADMINISTRATIVO; -- Admin puede verlo todo
+    
+    
+    /* TESTEO */
+    select * from VVEHICULO;
+    
+    select * from cliente;
     
