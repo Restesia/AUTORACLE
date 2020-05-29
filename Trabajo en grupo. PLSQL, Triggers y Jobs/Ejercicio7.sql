@@ -21,6 +21,7 @@ Begin
 
 end;
 / 
+
 Create SEQUENCE emp START WITH 3000
 INCREMENT BY 1;
 
@@ -33,9 +34,9 @@ create or replace package AUTORACLE_GESTION_EMPLEADOS as
 
     procedure BORRA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
 
-    procedure MODIFICA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type, NOMBRE empleado.nombre%type, APELLIDO1 empleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
-                            DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
-                            RETENCIONES empleado.retenciones%type);
+    procedure MODIFICA_EMPLEADO(ID_EMPLEAD empleado.IDEMPLEADO%type, NOMBR empleado.nombre%type, APELLID1 empleado.apellido1%type, APELLID2 empleado.apellido2%type, FECHA_ENTRAD empleado.fecentrada%type, 
+                            DESPEDID empleado.despedido%type, SUELDOBAS empleado.sueldobase%type, HORA empleado.horas%type, PUEST empleado.puesto%type, 
+                            RETENCIONE empleado.retenciones%type);
 
     procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
 
@@ -92,35 +93,38 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
     END;
 
 
-    procedure MODIFICA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type, NOMBRE empleado.nombre%type, APELLIDO1 empleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
-                            DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
-                            RETENCIONES empleado.retenciones%type) is
-        USR VARCHAR(64);
-
+    procedure MODIFICA_EMPLEADO(ID_EMPLEAD empleado.IDEMPLEADO%type, NOMBR empleado.nombre%type, APELLID1 empleado.apellido1%type, APELLID2 empleado.apellido2%type, FECHA_ENTRAD empleado.fecentrada%type, 
+                            DESPEDID empleado.despedido%type, SUELDOBAS empleado.sueldobase%type, HORA empleado.horas%type, PUEST empleado.puesto%type, 
+                            RETENCIONE empleado.retenciones%type) is
+        USR number := 0;
+        SENTENCIA Varchar(100);
     BEGIN
 
-        update empleado set NOMBRE = NOMBRE,
-        APELLIDO1 = APELLIDO1,
-        APELLIDO2 = APELLIDO2,
-        FECENTRADA = FECHA_ENTRADA,
-        DESPEDIDO = DESPEDIDO,
-        SUELDOBASE = SUELDOBASE,
-        HORAS = HORAS,
-        PUESTO = PUESTO,
-        RETENCIONES = RETENCIONES
-        where IDEMPLEADO = ID_EMPLEADO ;
+        update empleado set NOMBRE = NOMBR,
+        APELLIDO1 = APELLID1,
+        APELLIDO2 = APELLID2,
+        FECENTRADA = FECHA_ENTRAD,
+        DESPEDIDO = DESPEDID,
+        SUELDOBASE = SUELDOBAS,
+        HORAS = HORA,
+        PUESTO = PUEST,
+        RETENCIONES = RETENCIONE
+        where IDEMPLEADO = ID_EMPLEAD ;
 
         -- Comprobar si el usuario es NULL y crear de ser necesario
-        Select USERNAME into USR from all_users where USERNAME = NOMBRE||ID_EMPLEADO;
+        Select count(USERNAME) into USR from all_users where USERNAME = UPPER(NOMBR)||ID_EMPLEAD;
 
-        IF USR is null then
-        Execute immediate 'Create user '||NOMBRE||ID_EMPLEADO||' identified by autouser';
+        IF USR = 0 then
+        
+            SENTENCIA:= 'CREATE user '||NOMBR||ID_EMPLEAD||' identified by autouse' ;
+            DBMS_OUTPUT.PUT_LINE(SENTENCIA);
+            Execute immediate SENTENCIA;
+        
         END IF;
 
 
 
     END;
-
 
     procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) is
             Nom  empleado.nombre%type;
@@ -186,14 +190,6 @@ END AUTORACLE_GESTION_EMPLEADOS;
     Con el objetivo de probar el funcionamiento del paquete vamos a lanzar varias veces el primero de los procedures que 
     implemtea el paquete para comprobar que efectivamente crea de la forma deseada los usuarios.
 */
-SET SERVEROUTPUT ON;
-
-alter session set "_Oracle_SCRIPT"=true;  
-
-
-Create user julian12 identified by autouse;
-
-drop user julian12 cascade;
 
 EXECUTE autoracle_gestion_empleados.crea_empleado('Pepe', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0);
 EXECUTE autoracle_gestion_empleados.crea_empleado('Pepa', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0);
@@ -205,3 +201,34 @@ EXECUTE autoracle_gestion_empleados.crea_empleado('Pepu', 'Pepito', 'Grillito', 
 --Al ejecutar estas dos sentencias podemos ver en las respectivas tablas como los usuarios y los hempleados se crean y se insertan adecuadamente
 select * from all_users where username like 'PEP%';
 select * from empleado where nombre like 'Pep%' ; 
+
+/*
+    El siguiente fragmento de codigo se implementa con el objetivo de probar el buen funcionamiento del procedure 
+    MODIFICA_EMPLEADO que implementa el package que acabamos de crear. Lo que haremos sera modificar los empleados que acabamos 
+    de crear para testear el procedimiento anterior.
+*/
+SET serveroutput ON;
+
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3001', 'Pepe', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Marinero', 0);
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3002', 'Pepa', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Piloto', 0);
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3003', 'Pepo', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Comandante', 0);
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3004', 'Pepi', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Pescadero', 0);
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3005', 'Pepu', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Presidente del gobierno', 0);
+
+
+--Al ejecutar esta sentencia podemos ver Como el campo Puesto de los empleados fue modificado, antes todos eran mecanicos, ahora su profesión ha cambiado
+
+/*
+    A continuación bloquearemos y desbloquearemos la cuenta de Pepe Pepito Grillito, empleado añadido anteriormente. Con eso
+    demostraremos el buen funcionamiento de dicho procedimiento. 
+*/
+
+
+select * from empleado where nombre like 'Pep%' ; 
+
+
+EXECUTE autoracle_gestion_empleados.BLOQUEAR_EMPLEADO('3001') ;
+    
+
+-- Esta sentencia debe ejecutarse desde System
+select Username, account_status from dba_users where username = 'PEPE3001' ;
