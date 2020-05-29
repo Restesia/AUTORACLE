@@ -67,16 +67,16 @@ CREATE ROLE R_CLIENTE;
     -- VISTA A DATOS PROPIOS.
     ALTER TABLE CLIENTE ADD USERNAME VARCHAR(32);
     
-    CREATE OR REPLACE VIEW VDATOS AS (SELECT * FROM AUTORACLE.CLIENTE WHERE USERNAME = USER); -- username = user
+    CREATE OR REPLACE VIEW VDATOS AS (SELECT * FROM AUTORACLE.CLIENTE WHERE UPPER(USERNAME) = UPPER(USER)); -- username = user
     
     -- VISTA A SERVICIOS PROPIOS 
     
    CREATE OR REPLACE VIEW VSERVICIO AS
-   (select * from servicio s join vehiculo v on (s.vehiculo_numbastidor=v.numbastidor) join cliente c on (v.cliente_idcliente=c.idcliente) where c.username = user);
+   (select * from servicio s join vehiculo v on (s.vehiculo_numbastidor=v.numbastidor) join cliente c on (v.cliente_idcliente=c.idcliente) where UPPER(c.username) = UPPER(user));
     
     -- VISTA A VEHICULO PROPIO
      
-    CREATE OR REPLACE VIEW VVEHICULO AS (SELECT * FROM vehiculo v join CLIENTE c on (v.CLIENTE_IDCLIENTE=c.IDCLIENTE) WHERE C.USERNAME = USER);
+    CREATE OR REPLACE VIEW VVEHICULO AS (SELECT * FROM vehiculo v join CLIENTE c on (v.CLIENTE_IDCLIENTE=c.IDCLIENTE) WHERE UPPER(C.USERNAME) = UPPER(USER));
     
     -- Dar permisos de la vista
     
