@@ -60,13 +60,14 @@ CREATE ROLE R_CLIENTE;
     GRANT SELECT ON MANTENIMIENTO TO R_MECANICO;
     GRANT SELECT ON REPARACION TO R_MECANICO;
     
+    ALTER TABLE EMPLEADO ADD USERNAME VARCHAR(32);
+    
     -- PERMISO CLIENTES
     
     -- VISTA A DATOS PROPIOS.
     ALTER TABLE CLIENTE ADD USERNAME VARCHAR(32);
     
-    CREATE OR REPLACE VIEW VDATOS AS (SELECT "IDCLIENTE","TELEFONO","NOMBRE","APELLIDO1","APELLIDO2","EMAIL" 
-    FROM AUTORACLE.CLIENTE WHERE USERNAME = USER); -- username = user
+    CREATE OR REPLACE VIEW VDATOS AS (SELECT * FROM AUTORACLE.CLIENTE WHERE USERNAME = USER); -- username = user
     
     -- VISTA A SERVICIOS PROPIOS 
     
@@ -74,7 +75,6 @@ CREATE ROLE R_CLIENTE;
    (select * from servicio s join vehiculo v on (s.vehiculo_numbastidor=v.numbastidor) join cliente c on (v.cliente_idcliente=c.idcliente) where c.username = user);
     
     -- VISTA A VEHICULO PROPIO
-     ALTER TABLE EMPLEADO ADD USERNAME VARCHAR(32);
      
     CREATE OR REPLACE VIEW VVEHICULO AS (SELECT * FROM vehiculo v join CLIENTE c on (v.CLIENTE_IDCLIENTE=c.IDCLIENTE) WHERE C.USERNAME = USER);
     
@@ -84,13 +84,16 @@ CREATE ROLE R_CLIENTE;
     GRANT SELECT ON VSERVICIO TO R_CLIENTE;
     GRANT SELECT ON VVEHICULO TO R_CLIENTE;
     
-    GRANT SELECT ON VDATOS TO R_ADMINISTRATIVO; -- Admin puede verlo todo
-    GRANT SELECT ON VSERVICIO TO R_ADMINISTRATIVO; --Admin puede verlo todo
-    GRANT SELECT ON VVEHICULO TO R_ADMINISTRATIVO; -- Admin puede verlo todo
-    
     
     /* TESTEO */
     select * from VVEHICULO;
+    select * from cliente;
     
+    insert into CLIENTE values('123945', 676987890, 'Mike', 'Perez', 'Galvan', 'mike@uma.es', 'Mike32' );
+    
+    create user Mike32 identified by bd default tablespace TS_AUTORACLE
+    QUOTA 1M on TS_AUTORACLE;
+    
+    grant R_CLIENTE to Mike32;
     select * from cliente;
     
