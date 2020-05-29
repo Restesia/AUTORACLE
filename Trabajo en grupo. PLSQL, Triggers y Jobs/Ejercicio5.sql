@@ -47,13 +47,20 @@ END F_CALCULAR_PIEZAS;
 FUNCTION F_CALCULAR_TIEMPOS RETURN T_TIEMPOS AS
     resultado T_TIEMPOS;
 BEGIN
-        -- Realizamos la consulta
-        SELECT (SUM((s.FECREALIZACION - s.FECRECEPCION)) / COUNT(*)), SUM(HORAS)/COUNT(horas)
-        INTO resultado
-        FROM servicio s
-        FULL JOIN reparacion r ON s.IDSERVICIO = r.IDSERVICIO
-        -- Evitamos las fechas que estan vacias
-        WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL;
+        -- Media de dias de un servicio
+        SELECT AVG((s.FECREALIZACION - s.FECRECEPCION))
+        into resultado.dias
+        FROM SERVICIO s
+        -- Evitamos los valores nulos
+        WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL; 
+
+        -- Media de horas de una reparacion
+        SELECT AVG(HORAS)
+        into resultado.horas
+        FROM SERVICIO s
+        JOIN reparacion r ON s.IDSERVICIO = r.IDSERVICIO
+        WHERE FECREALIZACION IS NOT NULL AND FECRECEPCION IS NOT NULL; 
+
         -- Mostramos los valores
         DBMS_OUTPUT.PUT_LINE('DIAS '||resultado.dias);
         DBMS_OUTPUT.PUT_LINE('HORAS '||resultado.horas);
