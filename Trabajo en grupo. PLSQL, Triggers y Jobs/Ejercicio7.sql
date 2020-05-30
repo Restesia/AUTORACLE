@@ -70,9 +70,7 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         Select IDEMPLEADO into ID_EMPLEADO from empleado where NOMBRE = NOMBRE and apellido1 = apellido1 and FECENTRADA = FECHA_ENTRADA;
         
         SENTENCIA:= 'CREATE user '||NOMBRE||TO_CHAR(ID_EMPLEADO)||' identified by autouser' ;
-        
         DBMS_OUTPUT.PUT_LINE(SENTENCIA);
-        
         Execute immediate SENTENCIA;
 
     END;
@@ -116,7 +114,7 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
         IF USR = 0 then
         
-            SENTENCIA:= 'CREATE user '||NOMBR||ID_EMPLEAD||' identified by autouse' ;
+            SENTENCIA:= 'CREATE user '||NOMBR||ID_EMPLEAD||' identified by autouser' ;
             DBMS_OUTPUT.PUT_LINE(SENTENCIA);
             Execute immediate SENTENCIA;
         
@@ -126,6 +124,7 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
     END;
 
+
     procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) is
             Nom  empleado.nombre%type;
         BEGIN
@@ -133,7 +132,7 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
         Select NOMBRE into Nom from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
-        Execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||' ACCOUNT LOCK';
+        Execute immediate 'ALTER USER '||UPPER(Nom)||ID_EMPLEADO||' ACCOUNT LOCK';
 
 
 
@@ -142,15 +141,16 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
     procedure DESBLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) is
 
-
+                SENTENCIA Varchar(100);
                 Nom Varchar(64);
         BEGIN
 
         Select NOMBRE into Nom from empleado where IDEMPLEADO = ID_EMPLEADO;
 
         -- Bloquear el usuario
-        Execute immediate 'ALTER USER '||Nom||ID_EMPLEADO||' ACCOUNT UNLOCK';
-
+        Sentencia := 'ALTER USER '||UPPER(Nom)||ID_EMPLEADO||' ACCOUNT UNLOCK';
+        DBMS_OUTPUT.PUT_LINE(SENTENCIA);
+        Execute immediate SENTENCIA;
 
     END;
 
@@ -162,7 +162,7 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
             Cursor c_cursor is select * from empleado;
         BEGIN
             FOR datos in c_cursor LOOP
-                         Execute immediate 'ALTER USER '||datos.NOMBRE||datos.IDEMPLEADO||' ACCOUNT LOCK';
+                         Execute immediate 'ALTER USER '||UPPER(datos.NOMBRE)||datos.IDEMPLEADO||' ACCOUNT LOCK';
             END LOOP;
 
 
@@ -175,7 +175,7 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
             Cursor c_cursor is select * from empleado;
         BEGIN
             FOR datos in c_cursor LOOP
-                        Execute immediate 'ALTER USER '||datos.NOMBRE||datos.IDEMPLEADO||' ACCOUNT UNLOCK';
+                         Execute immediate 'ALTER USER '||UPPER(datos.NOMBRE)||datos.IDEMPLEADO||' ACCOUNT UNLOCK';
             END LOOP;
 
 
@@ -183,8 +183,6 @@ create or replace NONEDITIONABLE PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
 
 END AUTORACLE_GESTION_EMPLEADOS;
-
-/
 
 /*
     Con el objetivo de probar el funcionamiento del paquete vamos a lanzar varias veces el primero de los procedures que 
@@ -232,3 +230,49 @@ EXECUTE autoracle_gestion_empleados.BLOQUEAR_EMPLEADO('3001') ;
 
 -- Esta sentencia debe ejecutarse desde System
 select Username, account_status from dba_users where username = 'PEPE3001' ;
+
+/*
+    A continuación bloquearemos y desbloquearemos la cuenta de Pepe Pepito Grillito, empleado añadido anteriormente. Con eso
+    demostraremos el buen funcionamiento de dicho procedimiento. 
+*/
+
+
+
+EXECUTE autoracle_gestion_empleados.BLOQUEAR_EMPLEADO('3001') ;
+    
+
+-- Esta sentencia debe ejecutarse desde System
+select Username, account_status from dba_users where username = 'PEPE3001' ;
+
+
+EXECUTE autoracle_gestion_empleados.DESBLOQUEAR_EMPLEADO('3001');
+
+
+-- Como podemos ver en ambas consultas el usuario se ha bloqueado y desbloqueado correctamente.
+-- Por lo que ambos metodos funcionan bien.
+select Username, account_status from dba_users where username = 'PEPE3001' ;
+
+
+/*
+    Ahora mostraremos los dos procedimientos que se encargan de bloquear y desbloquear a todos 
+    Los empleados de la base de datos.
+*/
+
+EXECUTE autoracle_gestion_empleados.BLOQUEAR_TODOS;
+
+-- Esta sentencia debe ser ejecutada desde System 
+select Username, account_status from dba_users;
+
+EXECUTE autoracle_gestion_empleados.DESBLOQUEAR_TODOS;
+
+-- Esta sentencia debe ser ejecutada desde System  
+select Username, account_status from dba_users;
+
+EXECUTE autoracle_gestion_empleados.BORRA_EMPLEADO('3001');
+EXECUTE autoracle_gestion_empleados.BORRA_EMPLEADO('3002');
+EXECUTE autoracle_gestion_empleados.BORRA_EMPLEADO('3003');
+EXECUTE autoracle_gestion_empleados.BORRA_EMPLEADO('3004');
+EXECUTE autoracle_gestion_empleados.BORRA_EMPLEADO('3005');
+
+select * from all_users where username like 'PEP%';
+select * from empleado where nombre like 'Pep%' ; 
