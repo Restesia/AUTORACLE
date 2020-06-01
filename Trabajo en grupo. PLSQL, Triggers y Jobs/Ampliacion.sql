@@ -17,3 +17,9 @@ insert into modelo values(20,5,'M73',6,NULL,NULL);
     -- Funciona
 insert into modelo values(20,5,'M73',5,NULL,NULL);
 
+
+
+-- BITMAP INDEX para las marcas usadas en modelo
+-- No creemos que la cardinalidad de marcas de coches sea elevada por lo que un bitmap index debería ser bastante eficiente
+CREATE BITMAP INDEX indice_modelo_marca
+ON MODELO(marca_idmarca);
