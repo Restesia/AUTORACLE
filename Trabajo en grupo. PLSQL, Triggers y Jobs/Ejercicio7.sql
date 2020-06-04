@@ -30,38 +30,13 @@ create or replace package AUTORACLE_GESTION_EMPLEADOS as
 
     procedure CREA_EMPLEADO(NOMBRE empleado.nombre%type, APELLIDO1 empleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
                             DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
-                            RETENCIONES empleado.retenciones%type);
+                            RETENCIONES empleado.retenciones%type, PASS empleado.nombre%type);
 
     procedure BORRA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
 
     procedure MODIFICA_EMPLEADO(ID_EMPLEAD empleado.IDEMPLEADO%type, NOMBR empleado.nombre%type, APELLID1 empleado.apellido1%type, APELLID2 empleado.apellido2%type, FECHA_ENTRAD empleado.fecentrada%type, 
                             DESPEDID empleado.despedido%type, SUELDOBAS empleado.sueldobase%type, HORA empleado.horas%type, PUEST empleado.puesto%type, 
-                            RETENCIONE empleado.retenciones%type);
-
-    procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
-
-    procedure DESBLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
-
-    procedure BLOQUEAR_TODOS;
-
-    procedure DESBLOQUEAR_TODOS;
-
-END AUTORACLE_GESTION_EMPLEADOS;
-/
-
-
-create or replace package AUTORACLE_GESTION_EMPLEADOS as
-    
-
-    procedure CREA_EMPLEADO(NOMBRE empleado.nombre%type, APELLIDO1 empleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
-                            DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
-                            RETENCIONES empleado.retenciones%type);
-
-    procedure BORRA_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
-
-    procedure MODIFICA_EMPLEADO(ID_EMPLEAD empleado.IDEMPLEADO%type, NOMBR empleado.nombre%type, APELLID1 empleado.apellido1%type, APELLID2 empleado.apellido2%type, FECHA_ENTRAD empleado.fecentrada%type, 
-                            DESPEDID empleado.despedido%type, SUELDOBAS empleado.sueldobase%type, HORA empleado.horas%type, PUEST empleado.puesto%type, 
-                            RETENCIONE empleado.retenciones%type);
+                            RETENCIONE empleado.retenciones%type, PASS empleado.nombre%type);
 
     procedure BLOQUEAR_EMPLEADO(ID_EMPLEADO empleado.IDEMPLEADO%type) ;
 
@@ -79,7 +54,7 @@ create or replace PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
     procedure CREA_EMPLEADO(NOMBRE empleado.nombre%type, APELLIDO1 empleado.apellido1%type, APELLIDO2 empleado.apellido2%type, FECHA_ENTRADA empleado.fecentrada%type, 
                             DESPEDIDO empleado.despedido%type, SUELDOBASE empleado.sueldobase%type, HORAS empleado.horas%type, PUESTO empleado.puesto%type, 
-                            RETENCIONES empleado.retenciones%type) IS
+                            RETENCIONES empleado.retenciones%type, PASS empleado.nombre%type) IS
 
         ID_EMPLEADO Varchar(16);
         SENTENCIA Varchar(100);
@@ -94,7 +69,7 @@ create or replace PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
         
 
-        SENTENCIA:= 'CREATE user '||replace(NOMBRE, ' ', '')||ID_EMPLEADO||' identified by autouser' ;
+        SENTENCIA:= 'CREATE user '||replace(NOMBRE, ' ', '')||ID_EMPLEADO||' identified by '||PASS ;
         DBMS_OUTPUT.PUT_LINE(SENTENCIA);
         Execute immediate SENTENCIA;
 
@@ -118,7 +93,7 @@ create or replace PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
     procedure MODIFICA_EMPLEADO(ID_EMPLEAD empleado.IDEMPLEADO%type, NOMBR empleado.nombre%type, APELLID1 empleado.apellido1%type, APELLID2 empleado.apellido2%type, FECHA_ENTRAD empleado.fecentrada%type, 
                             DESPEDID empleado.despedido%type, SUELDOBAS empleado.sueldobase%type, HORA empleado.horas%type, PUEST empleado.puesto%type, 
-                            RETENCIONE empleado.retenciones%type) is
+                            RETENCIONE empleado.retenciones%type, PASS empleado.nombre%type) is
         USR number := 0;
         SENTENCIA Varchar(100);
     BEGIN
@@ -139,12 +114,19 @@ create or replace PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 
         IF USR = 0 then
         
-            SENTENCIA:= 'CREATE user '||replace(NOMBR, ' ', '')||ID_EMPLEAD||' identified by autouser' ;
+            SENTENCIA:= 'CREATE user '||replace(NOMBR, ' ', '')||ID_EMPLEAD||' identified by '||PASS ;
             DBMS_OUTPUT.PUT_LINE(SENTENCIA);
             Execute immediate SENTENCIA;
         
         END IF;
 
+        IF PASS IS NOT NULL then
+        
+            SENTENCIA:= 'ALTER user '||replace(NOMBR, ' ', '')||ID_EMPLEAD||' identified by '||PASS ;
+            DBMS_OUTPUT.PUT_LINE(SENTENCIA);
+            Execute immediate SENTENCIA;
+        
+        END IF;
 
 
     END;
@@ -217,6 +199,7 @@ create or replace PACKAGE BODY AUTORACLE_GESTION_EMPLEADOS AS
 END AUTORACLE_GESTION_EMPLEADOS;
 /
 
+
 /*
     Con el objetivo de probar el funcionamiento del paquete vamos a lanzar varias veces el primero de los procedures que 
     implemtea el paquete para comprobar que efectivamente crea de la forma deseada los usuarios.
@@ -225,11 +208,11 @@ END AUTORACLE_GESTION_EMPLEADOS;
     ejecutarse las primeras cinco veces si las sentencias son ejecutadas una segunda vez estas no funcionaran
 */
 
-EXECUTE autoracle_gestion_empleados.crea_empleado('Pepe', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0);
-EXECUTE autoracle_gestion_empleados.crea_empleado('Pepa', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0);
-EXECUTE autoracle_gestion_empleados.crea_empleado('Pepo', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0);
-EXECUTE autoracle_gestion_empleados.crea_empleado('Pepi', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0);
-EXECUTE autoracle_gestion_empleados.crea_empleado('Pepu', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0);
+EXECUTE autoracle_gestion_empleados.crea_empleado('Pepe', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0, 'caracol');
+EXECUTE autoracle_gestion_empleados.crea_empleado('Pepa', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0, 'caracol');
+EXECUTE autoracle_gestion_empleados.crea_empleado('Pepo', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0, 'caracol');
+EXECUTE autoracle_gestion_empleados.crea_empleado('Pepi', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0, 'caracol');
+EXECUTE autoracle_gestion_empleados.crea_empleado('Pepu', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0, 'caracol');
 
 
 --Al ejecutar estas dos sentencias podemos ver en las respectivas tablas como los usuarios y los hempleados se crean y se insertan adecuadamente
@@ -243,11 +226,12 @@ select * from empleado where nombre like 'Pep%' ;
 */
 
 
-EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3000', 'Pepe', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Marinero', 0);
-EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3001', 'Pepa', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Piloto', 0);
-EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3002', 'Pepo', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Comandante', 0);
-EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3003', 'Pepi', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Pescadero', 0);
-EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3004', 'Pepu', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Presidente del gobierno', 0);
+
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3000', 'Pepe', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Marinero', 0, NULL);
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3001', 'Pepa', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Piloto', 0,  NULL);
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3002', 'Pepo', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Comandante', 0, NULL);
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3003', 'Pepi', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Pescadero', 0,  NULL);
+EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3004', 'Pepu', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Presidente del gobierno', 0,  NULL);
 
 
 --Al ejecutar esta sentencia podemos ver Como el campo Puesto de los empleados fue modificado, antes todos eran mecanicos, ahora su profesión ha cambiado
