@@ -205,7 +205,9 @@ END AUTORACLE_GESTION_EMPLEADOS;
     implemtea el paquete para comprobar que efectivamente crea de la forma deseada los usuarios.
 
     Debido a que el procedimiento basa su funcionamiento en una sequence y el siguiente script trata de predecir su comportamiento 
-    ejecutarse las primeras cinco veces si las sentencias son ejecutadas una segunda vez estas no funcionaran
+    al ejecutarse las primeras cinco veces si las sentencias son ejecutadas una segunda vez estas no funcionaran.
+
+
 */
 
 EXECUTE autoracle_gestion_empleados.crea_empleado('Pepe', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'mecanico', 0, 'caracol');
@@ -224,7 +226,6 @@ select * from empleado where nombre like 'Pep%' ;
     MODIFICA_EMPLEADO que implementa el package que acabamos de crear. Lo que haremos sera modificar los empleados que acabamos 
     de crear para testear el procedimiento anterior.
 */
-
 
 
 EXECUTE autoracle_gestion_empleados.MODIFICA_EMPLEADO('3000', 'Pepe', 'Pepito', 'Grillito', SYSDATE - 30000, 0, 1200, 12, 'Marinero', 0, NULL);
@@ -257,16 +258,15 @@ select * from empleado where nombre like 'Pep%' ;
 EXECUTE autoracle_gestion_empleados.BLOQUEAR_EMPLEADO('3001') ;
     
 
--- Esta sentencia debe ejecutarse desde System
-select Username, account_status from dba_users where username = 'PEPA3001' ;
+-- Esta sentencia debe ser ejecutada desde System, para poder ejecutarlo desde AUTORACLE, dado que dba_users pertenece a sys, había que ejecutar los grant desde ahí  
+-- select Username, account_status from dba_users where username = 'PEPA3001' ;
 
 
 EXECUTE autoracle_gestion_empleados.DESBLOQUEAR_EMPLEADO('3001');
 
 
--- Como podemos ver en ambas consultas el usuario se ha bloqueado y desbloqueado correctamente.
--- Por lo que ambos metodos funcionan bien.
-select Username, account_status from dba_users where username = 'PEPA3001' ;
+-- Esta sentencia debe ser ejecutada desde System, para poder ejecutarlo desde AUTORACLE, dado que dba_users pertenece a sys, había que ejecutar los grant desde ahí  
+-- select Username, account_status from dba_users where username = 'PEPA3001' ;
 
 
 /*
@@ -276,13 +276,13 @@ select Username, account_status from dba_users where username = 'PEPA3001' ;
 
 EXECUTE autoracle_gestion_empleados.BLOQUEAR_TODOS;
 
--- Esta sentencia debe ser ejecutada desde System 
-select Username, account_status from dba_users;
+-- Esta sentencia debe ser ejecutada desde System, para poder ejecutarlo desde AUTORACLE, dado que dba_users pertenece a sys, había que ejecutar los grant desde ahí  
+-- select Username, account_status from dba_users;
 
 EXECUTE autoracle_gestion_empleados.DESBLOQUEAR_TODOS;
 
--- Esta sentencia debe ser ejecutada desde System  
-select Username, account_status from dba_users;
+-- Esta sentencia debe ser ejecutada desde System, para poder ejecutarlo desde AUTORACLE, dado que dba_users pertenece a sys, había que ejecutar los grant desde ahí  
+-- select Username, account_status from dba_users;
 
 EXECUTE autoracle_gestion_empleados.BORRA_EMPLEADO('3000');
 EXECUTE autoracle_gestion_empleados.BORRA_EMPLEADO('3001');
