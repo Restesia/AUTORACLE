@@ -15,7 +15,9 @@ CREATE TABLE COMPRA_FUTURA(
     
 CREATE OR REPLACE PROCEDURE P_REVISA IS
     CURSOR C_PIEZA IS (SELECT PROVEEDOR_NIF, CODREF, NOMBRE, CANTIDAD, FECCADUCIDAD FROM PIEZA);
+    -- CREAMOS VAR TELEFONO PARA GUARDAR EL TELEFONO DEL PROVEEDOR EN COMPRA FUTURA
     TLF number;
+    -- CREAMOS VAR EMAIL PARA GUARDAR DEL EMAIL DEL PROVEEDOR EN COMPRA FUTURA
     EMAIL VARCHAR2(50);
 BEGIN
     FOR I IN C_PIEZA LOOP
@@ -29,9 +31,17 @@ BEGIN
 END P_REVISA;
 /
 
+/*Explicacion procedure:
+    Crea un cursor que recorre todas las filas de PIEZA obteniendo tanto los datos de dicha pieza como los del proveedor que las suministra.
+    El objetivo de este procedimiento es comprobar la fecha de caducidad de dichas piezas. Si esta es inferior a la fecha actual (sysdate),
+    Se insertarán los datos tanto del proveedor como de la pieza en compra futura para indicar que dicha pieza debe ser comprada.
+*/
+
+
 -- TESTEO 
 
-update PIEZA set FECCADUCIDAD = NULL; -- No ponemos clausula where porque queremos reiniciar el proceso.
+update PIEZA set FECCADUCIDAD = NULL where CODREF = '227562'; -- Reseteamos fecha caducidad.
+update Pieza set FECCADUCIDAD = NULL where CODREF = '123498'; -- Reseteamos fecha caducidad.
 delete from COMPRA_FUTURA where REF_PIEZA = '123498'; -- Reseteamos tabla para hacer el proceso desde 0.
 delete from COMPRA_FUTURA where REF_PIEZA = '227562'; -- Reseteamos tabla para hacer el proceso desde 0.
 
